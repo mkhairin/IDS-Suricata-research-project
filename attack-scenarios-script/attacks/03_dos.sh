@@ -10,7 +10,7 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI
-TARGET_IP="192.168.113.50"   # Ganti dengan IP Metasploitable
+TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
 LOG_FILE="logs/dos_session_$(date +%F).log"
 
 # Warna untuk Tampilan Laporan

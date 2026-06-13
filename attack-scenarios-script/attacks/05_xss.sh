@@ -10,7 +10,7 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI
-TARGET_IP="192.168.113.50"   # Ganti dengan IP Metasploitable
+TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
 # Masukkan PHPSESSID dari login DVWA (Sama seperti modul SQLmap)
 COOKIE="security=low; PHPSESSID=ganti_dengan_session_id_anda"
 LOG_FILE="logs/xss_session_$(date +%F).log"

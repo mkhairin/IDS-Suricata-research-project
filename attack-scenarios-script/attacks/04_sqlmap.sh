@@ -10,7 +10,7 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI TARGET
-TARGET_IP="192.168.113.50"   # Ganti dengan IP Metasploitable
+TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
 # URL DVWA SQL Injection (Pastikan ID user ada, misal id=1)
 TARGET_URL="http://$TARGET_IP/dvwa/vulnerabilities/sqli/?id=1&Submit=Submit"
 

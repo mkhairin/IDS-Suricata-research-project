@@ -10,8 +10,8 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI
-TARGET_IP="192.168.113.50"   # Ganti dengan IP Metasploitable
-LHOST="192.168.113.110"      # PENTING: Ganti dengan IP Kali Linux Anda!
+TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
+LHOST="192.168.x.x"      # PENTING: Ganti dengan IP Kali Linux Anda!
 RC_SCRIPT="logs/auto_exploit.rc"
 LOG_FILE="logs/rce_console_output.txt"
 

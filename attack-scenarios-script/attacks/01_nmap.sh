@@ -10,7 +10,7 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI
-TARGET_IP="192.168.113.50" # Pastikan ini IP Metasploitable Anda
+TARGET_IP="192.168.x.x" # Pastikan ini IP Metasploitable Anda
 LOG_FILE="logs/nmap_session_$(date +%F).log"
 
 # Warna untuk Tampilan Laporan

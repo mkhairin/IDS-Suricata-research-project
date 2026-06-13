@@ -10,7 +10,7 @@
 ROUND=${1:-1} # Default ke ronde 1 jika kosong
 
 # KONFIGURASI
-TARGET_IP="192.168.113.50"   # Ganti dengan IP Metasploitable
+TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
 # Masukkan PHPSESSID valid dari browser
 COOKIE="security=low; PHPSESSID=ganti_dengan_session_id_anda"
 LOG_FILE="logs/trav_session_$(date +%F).log"
