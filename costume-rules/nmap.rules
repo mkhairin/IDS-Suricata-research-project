@@ -1,0 +1,19 @@
+# [SKENARIO 1] NMAP PORT SCANNING
+# LEVEL 1: AGGRESSIVE SYN SCAN (-T4 / -sS)
+alert tcp any any -> any ![80,443] (msg:"[TA-SIG::S01-NMAP] Nmap SYN Port Scan - Aggressive Scan Detected (High Confidence)"; flow:to_server,not_established; flags:S; threshold:type both, track by_src, count 50, seconds 10; reference:url,nmap.org/book/man-port-scanning-techniques.html; classtype:attempted-recon; sid:1026011; rev:5; metadata: attack_type Port_Scan, mitre_tactic Discovery, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 2A: Deteksi Nmap Fragmentation (-f)
+alert tcp any any -> $HOME_NET any (msg:"[TA-SIG::S01-NMAP] Nmap Evasion Technique - Packet Fragmentation (-f / --mtu) (High Confidence)"; fragbits:M; dsize:<24; threshold:type both, track by_src, count 3, seconds 10; reference:url,nmap.org/book/man-bypass-firewalls-ids.html; classtype:attempted-recon; sid:1026015; rev:6; metadata: attack_type Evasion, mitre_tactic Defense_Evasion, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 2B: Deteksi Nmap Data Length (--data-length)
+alert tcp any any -> any any (msg:"[TA-SIG::S01-NMAP] Protocol Anomaly - TCP SYN Packet with Payload (Medium Confidence)"; flow:not_established; flags:S,12; dsize:>0; threshold:type both, track by_src, count 1, seconds 30; reference:url,nmap.org/book/man-bypass-firewalls-ids.html; classtype:attempted-recon; sid:1026016; rev:5; metadata: attack_type Evasion, mitre_tactic Defense_Evasion, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# LEVEL 3: STEALTH SCANS (XMAS, FIN, NULL)
+# Target: XMAS Scan
+alert tcp any any -> any any (msg:"[TA-SIG::S01-NMAP-XMAS] Nmap Stealth Scan - XMAS Scan Detected (High Confidence)"; flow:stateless; flags:FPU,12; threshold:type both, track by_dst, count 1, seconds 10; reference:url,nmap.org/book/man-port-scanning-techniques.html; classtype:attempted-recon; sid:1026012; rev:5; metadata: attack_type Stealth_Scan, mitre_tactic Discovery, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Target: FIN Scan
+alert tcp any any -> any any (msg:"[TA-SIG::S01-NMAP-FIN] Nmap Stealth Scan - FIN Scan Detected (High Confidence)"; flow:stateless; flags:F,12; threshold:type both, track by_dst, count 1, seconds 10; reference:url,nmap.org/book/man-port-scanning-techniques.html; classtype:attempted-recon; sid:1026013; rev:5; metadata: attack_type Stealth_Scan, mitre_tactic Discovery, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Target: NULL Scan
+alert tcp any any -> any any (msg:"[TA-SIG::S01-NMAP-NULL] Nmap Stealth Scan - NULL Scan Detected (High Confidence)"; flow:stateless; flags:0,UAPRSF; threshold:type both, track by_dst, count 1, seconds 10; reference:url,nmap.org/book/man-port-scanning-techniques.html; classtype:attempted-recon; sid:1026014; rev:4; metadata: attack_type Stealth_Scan, mitre_tactic Discovery, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)

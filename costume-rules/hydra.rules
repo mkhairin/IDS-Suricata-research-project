@@ -1,0 +1,12 @@
+# [SKENARIO 2] HYDRA BRUTE FORCE - MAXIMUM CATCH RATE (TUNED)
+# RULE 1: SSH BRUTE FORCE
+alert tcp any any -> $HOME_NET 22 (msg:"[TA-SIG::S02-HYDRA-SSH] SSH Authentication Brute Force Attempt (High Confidence)"; flow:not_established,to_server; flags:S,12; threshold:type threshold, track by_src, count 3, seconds 120; reference:url,attack.mitre.org/techniques/T1110/001/; classtype:attempted-admin; sid:1026021; rev:7; metadata: attack_type Brute_Force, mitre_tactic Credential_Access, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# RULE 2: FTP BRUTE FORCE (The Low-Slow Catcher)
+# Target: Port 21 (Respons Server: 530 Login incorrect)
+alert tcp $HOME_NET 21 -> any any (msg:"[TA-SIG::S02-HYDRA-FTP] FTP Authentication Brute Force Attempt (High Confidence)"; flow:established,from_server; content:"530 "; threshold:type threshold, track by_dst, count 3, seconds 120; reference:url,attack.mitre.org/techniques/T1110/001/; classtype:attempted-admin; sid:1026022; rev:5; metadata: attack_type Brute_Force, mitre_tactic Credential_Access, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# RULE 3: TELNET BRUTE FORCE (The Low-Slow Catcher)
+# Target: Port 23 (Respons Server: Login incorrect)
+alert tcp $HOME_NET 23 -> any any (msg:"[TA-SIG::S02-HYDRA-TELNET] Telnet Authentication Brute Force Attempt (High Confidence)"; flow:established,from_server; content:"Login incorrect"; nocase; threshold:type threshold, track by_dst, count 3, seconds 120; reference:url,attack.mitre.org/techniques/T1110/001/; classtype:attempted-admin; sid:1026024; rev:5; metadata: attack_type Brute_Force, mitre_tactic Credential_Access, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+

@@ -1,0 +1,12 @@
+# [SKENARIO 3] DENIAL OF SERVICE (DoS/DDoS)
+# Rule 1: Deteksi ICMP Flood (Smurf & Timestamp)
+alert icmp any any -> any any (msg:"[TA-SIG::S03-DOS-ICMP] ICMP Flood - Echo/Timestamp Request Flood Detected (High Confidence)"; flow:stateless; threshold:type both, track by_dst, count 50, seconds 60; reference:url,datatracker.ietf.org/doc/html/rfc792; classtype:attempted-dos; sid:1026031; rev:11; metadata: attack_type DoS, mitre_tactic Impact, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 2: Deteksi UDP Flood (DNS Port 53)
+alert udp any any -> $HOME_NET 53  (msg:"[TA-SIG::S03-DOS-UDP] UDP Flood - High-Volume DNS Traffic Detected (High Confidence)";  flow:stateless; threshold:type both, track by_dst, count 500, seconds 5; classtype:attempted-dos; sid:1026032; rev:2; metadata: author Muhammad_Khairin, created_at 2026_04_07, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 3: Deteksi TCP SYN Flood & Random Source DDoS
+alert tcp any any -> $HOME_NET any (msg:"[TA-SIG::S03-DOS-SYN] TCP SYN Flood - Distributed / Random Source Attack Detected (High Confidence)"; flow:stateless; flags:S,12; threshold:type both, track by_dst, count 500, seconds 5; reference:url,datatracker.ietf.org/doc/html/rfc4987; classtype:attempted-dos; sid:1026033; rev:2; metadata: author Muhammad_Khairin, created_at 2026_04_07, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 4: Deteksi TCP PUSH-ACK State Exhaustion (Kosong)
+alert tcp any any -> $HOME_NET any (msg:"[TA-SIG::S03-DOS-PA] TCP PUSH-ACK Flood - State Exhaustion Attempt (Low Payload) (High Confidence)"; flow:stateless; flags:PA,12; dsize:0; threshold:type both, track by_dst, count 200, seconds 5; classtype:attempted-dos; sid:1026034; rev:2; metadata: author Muhammad_Khairin, created_at 2026_04_07, project Tugas_Akhir_Optimasi_IDS;)

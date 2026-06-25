@@ -1,0 +1,18 @@
+# [SKENARIO 7] REMOTE CODE EXECUTION (RCE)
+# RULE 1: PRA-EKSPLOITASI (Mencegat Sakelar Backdoor VSFTPD)
+# Target: Port 21 (FTP)
+alert tcp any any -> any 21 (msg:"[TA-SIG::S07-RCE-VSFTPD] Remote Code Execution - VSFTPD v2.3.4 Backdoor Trigger Attempt (High Confidence)"; flow:established,to_server; content:"USER"; nocase; fast_pattern; content:":)"; distance:0; within:50; pcre:"/(?i)^USER\s+.*:\)/"; reference:url,attack.mitre.org/techniques/T1190/; classtype:attempted-admin; sid:1026071; rev:3; metadata: attack_type RCE_Trigger, mitre_tactic Initial_Access, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# RULE 2: PRA-EKSPLOITASI (Mencegat Delivery Payload via Samba)
+# Target: Port 139, 445 (SMB)
+alert tcp any any -> any [139,445] (msg:"[TA-SIG::S07-RCE-SAMBA] Remote Code Execution Samba Usermap Script Command Injection (CVE-2007-2447) (High Confidence)"; flow:established,to_server; pcre:"/(?i)(sh\s+-c|nc\s+-e|python\s+-c|perl\s+-)/"; reference:url, attack.mitre.org/techniques/T1059/; classtype:attempted-admin; sid:1026072; rev:4; metadata: attack_type RCE_Delivery, mitre_tactic Execution, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# RULE 3: PRA-EKSPLOITASI (Mencegat Perintah Anomali di Port Compiler)
+# Target: Port 3632 (DistCC)
+alert tcp any any -> any 3632 (msg:"[TA-SIG::S07-RCE-DISTCC] Remote Code Execution - DistCC Daemon Command Injection Attempt (High Confidence)"; flow:established,to_server; pcre:"/(?i)(sh\s+-c|bash\s+-c|nc\s+-e|python\s+-c|perl\s+-|\/dev\/tcp\/)/"; reference:url, attack.mitre.org/techniques/T1190/; classtype:attempted-admin; sid:1026073; rev:4; metadata: attack_type RCE_Delivery, mitre_tactic Execution, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# RULE 4: PASCA-EKSPLOITASI (Jaring Pengaman / Reverse Shell Catcher)
+# Target: Semua Port (Egress Traffic / Callback)
+alert tcp any ![20,21,22,23,80,443] -> any any (msg:"[TA-SIG::S07-RCE-CALLBACK] Remote Code Execution - Reverse Shell Callback Connection Detected (High Confidence)";flow:established,from_server; pcre:"/(?i)(uid=[0-9]+\(.*?\)|root@[a-zA-Z0-9-]+:|bash:\s|sh:\s|command\s+not\s+found)/"; classtype:successful-admin; sid:1026074; rev:4; metadata: attack_type Reverse_Shell_Callback, mitre_tactic Command_and_Control, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+

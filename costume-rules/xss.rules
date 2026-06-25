@@ -1,0 +1,14 @@
+# [SKENARIO 5] CROSS-SITE SCRIPTING (XSS)
+# MODUL 1: THE TAG INJECTOR (Mendeteksi <script>, <iframe>, dll)
+# Rule 1A: Reflected XSS (Target: URI / GET)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S05-XSS-TAG-REFLECTED] XSS - HTML Tag Injection in URI (High Confidence)"; flow:established,to_server; http.method; content:"GET"; http.uri; content:"<"; fast_pattern; pcre:"/(?i)<\s*(script|iframe|object|applet|embed)\b[^>]*>/"; reference:url,owasp.org/www-community/attacks/xss/; classtype:web-application-attack; sid:1026051; rev:4; metadata: attack_type Reflected_XSS, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 1B: Stored/Blind XSS (Target: POST Body)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S05-XSS-TAG-STORED] XSS - HTML Tag Injection in POST Body (High Confidence)"; flow:established,to_server; http.method; content:"POST"; http.request_body; content:"<"; fast_pattern; pcre:"/(?i)<\s*(script|iframe|object|applet|embed)\b[^>]*>/"; reference:url,owasp.org/www-community/attacks/xss/; classtype:web-application-attack; sid:1026052; rev:4; metadata: attack_type Stored_Blind_XSS, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# MODUL 2: THE EVENT HANDLER (Mendeteksi HTML5 Obfuscation, onerror=, onload=)
+# Rule 2A: Reflected XSS (Target: URI / GET)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S05-XSS-EVENT-REFLECTED] XSS - HTML Event Handler Injection in URI (High Confidence)"; flow:established,to_server; http.method; content:"GET"; http.uri; content:"on"; fast_pattern; pcre:"/(?i)<[^>]+?\b(on(error|load|mouseover|click|focus|blur|keydown|keyup))\s*=\s*/"; reference:url,portswigger.net/web-security/cross-site-scripting/cheat-sheet; classtype:web-application-attack; sid:1026053; rev:4; metadata: attack_type Reflected_XSS, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 2B: Stored/Blind XSS (Target: POST Body)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S05-XSS-EVENT-STORED] XSS - HTML Event Handler Injection in POST Body (High Confidence)"; flow:established,to_server; http.method; content:"POST"; http.request_body; content:"<script"; fast_pattern; pcre:"/(?i)<[^>]+?\b(on(error|load|mouseover|click|focus|blur|keydown|keyup))\s*=\s*/"; reference:url,portswigger.net/web-security/cross-site-scripting/cheat-sheet; classtype:web-application-attack; sid:1026054; rev:4; metadata: attack_type Stored_Blind_XSS, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)

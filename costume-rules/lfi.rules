@@ -1,0 +1,9 @@
+# [SKENARIO 6] LOCAL FILE INCLUSION (LFI) 
+#  Rule 1: The Traversal Tracker (Menangkap ../ dan variasi encode)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S06-LFI-TRAVERSAL] Local File Inclusion - Directory Traversal Attempt in URI (High Confidence)"; flow:established,to_server; http.method; content:"GET"; http.uri; content:".."; fast_pattern; pcre:"/(?i)(\.\.|%2e%2e)(\/|%2f|\\|%5c)/"; reference:url,owasp.org/www-community/attacks/Path_Traversal; classtype:web-application-attack; sid:1026061; rev:4; metadata: attack_type LFI_Traversal, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 2: The PHP Wrapper (Menangkap php://filter, base64, dll)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S06-LFI-WRAPPER] Local File Inclusion - PHP Wrapper / Filter Injection in URI (High Confidence)"; flow:established,to_server; http.method; content:"GET"; http.uri; content:"php://"; nocase; fast_pattern; pcre:"/(?i)php:(\/\/|%2f%2f)(filter|input|expect|data)/"; reference:url,owasp.org/www-community/vulnerabilities/PHP_File_Inclusion; classtype:web-application-attack; sid:1026062; rev:4; metadata: attack_type LFI_PHP_Wrapper, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
+
+# Rule 3: The Failsafe (Menangkap akses file sensitif OS Linux)
+alert http any any -> $HOME_NET $HTTP_PORTS (msg:"[TA-SIG::S06-LFI-FAILSAFE]Local File Inclusion - Sensitive File Access Attempt (OS Files) in URI (High Confidence)"; flow:established,to_server; http.method; content:"GET"; http.uri; content:"etc/"; nocase; fast_pattern; pcre:"/(?i)(etc\/(passwd|shadow|group|hosts|issue)|proc\/self\/environ)/"; reference:url,owasp.org/www-community/attacks/Path_Traversal; classtype:web-application-attack; sid:1026063; rev:3; metadata: attack_type LFI_Sensitive_File, author Muhammad_Khairin, project Tugas_Akhir_Optimasi_IDS;)
