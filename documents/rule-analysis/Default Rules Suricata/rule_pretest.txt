@@ -1,0 +1,83 @@
+Set A/B/C
+Ronde 1-30
+Skenario Nmap
+Jenis Aggressive Service Scan (T4)
+Level 1
+Alert ET SCAN Possible Nmap User-Agent Observed
+alert.category Web Application Attack
+alert.saverity 1
+alert.gid 1
+alert.signature_id 2024364
+rules alert http $HOME_NET any -> any any (msg:"ET SCAN Possible Nmap User-Agent Observed"; flow:established,to_server; http.user_agent; content:"|20|Nmap"; fast_pattern; classtype:web-application-attack; sid:2024364; rev:5; metadata:affected_product Any, attack_target Client_and_Server, created_at 2017_06_08, deployment Perimeter, performance_impact Low, confidence Medium, signature_severity Informational, updated_at 2024_03_07, reviewed_at 2024_05_06;)
+-
+Set A/B
+Ronde 1-20
+Skenario Dos (hping3)
+Jenis SYN Flood (Port 80/HTTP)
+Level 2
+Alert SURICATA STREAM 3way handshake SYNACK with wrong ack
+alert.category Generic Protocol Command Decode
+alert.saverity 3
+alert.gid 1
+alert.signature_id 2210007
+rules alert tcp any any -> any any (msg:"SURICATA STREAM 3way handshake SYNACK with wrong ack"; stream-event:3whs_synack_with_wrong_ack; threshold:type backoff, track by_flow, count 1, multiplier 2; classtype:protocol-command-decode; sid:2210007; rev:3;)
+-
+Set A/B/C
+Ronde 1-30
+Skenario Dos (hping3)
+Jenis Random Source IP Spoofing (DDoS Sim)
+Level 3
+Alert ET DROP Spamhaus DROP Listed Traffic Inbound group
+alert.category Misc Attack
+alert.saverity 2
+alert.gid 1
+alert.signature_id 2400027
+rules alert ip [160.21.0.0/16,160.104.0.0/16,160.116.0.0/16,160.117.0.0/16,160.121.0.0/16,160.122.0.0/16,160.180.0.0/16,160.188.0.0/16,160.240.0.0/16,161.0.0.0/19,161.0.68.0/22,161.1.0.0/16,161.60.0.0/16,161.248.178.0/23,162.71.0.0/19,162.208.124.0/22,162.249.20.0/22,163.47.19.0/24,163.50.0.0/16,163.123.191.0/24] any -> $HOME_NET any (msg:"ET DROP Spamhaus DROP Listed Traffic Inbound group 28"; reference:url,www.spamhaus.org/drop/drop.txt; threshold: type limit, track by_src, seconds 3600, count 1; classtype:misc-attack; flowbits:set,ET.Evil; flowbits:set,ET.DROPIP; sid:2400027; rev:4582; metadata:affected_product Any, attack_target Any, deployment Perimeter, tag Dshield, signature_severity Minor, created_at 2010_12_30, updated_at 2026_01_09;)
+-
+Set A/B/C
+Ronde 1-30
+Skenario Path Traversal
+Jenis PHP Wrapper Filter (Base64 Encode)
+Level 3
+Alert ET HUNTING PHP Filter Chains in HTTP URI
+alert.category access to a potentially vulnerable web application
+alert.saverity 2
+alert.gid 1
+alert.signature_id 2056494
+rules alert http any any -> $HOME_NET any (msg:"ET HUNTING PHP Filter Chains in HTTP URI"; flow:established,to_server; http.uri; content:"php|3a 2f 2f|filter|2f|"; fast_pattern; pcre:"/^[^\x3d]*?(?:(?:convert\x2e(?:quoted-printable-(?:en|de)code|iconv(?:\x2e[a-z0-9_-]+){2}|base64-(?:de|en)code)|zlib\x2e(?:(?:in|de)flate)|string\x2e(?:(?:to(?:upp|low)er)|rot13|strip_tags)|dechunk|consumed)(?:\x7c|\x2f)?)+/R"; reference:url,github.com/swisskyrepo/PayloadsAllTheThings/blob/master/File%20Inclusion/README.md#wrapper-phpfilter; classtype:web-application-activity; sid:2056494; rev:1; metadata:affected_product PHP, attack_target Server, tls_state TLSDecrypt, created_at 2024_10_04, deployment Perimeter, deployment Internal, deployment SSLDecrypt, confidence High, signature_severity Major, tag Exploit, updated_at 2024_10_04, mitre_tactic_id TA0001, mitre_tactic_name Initial_Access, mitre_technique_id T1190, mitre_technique_name Exploit_Public_Facing_Application; target:dest_ip;)
+-
+Set A/B/C
+Ronde 1-30
+Skenario RCE
+Jenis Exploit VSFTPD v2.3.4 (Backdoor)
+Level 1
+Alert GPL ATTACK_RESPONSE id check returned root
+alert.category Potentially Bad Traffic
+alert.saverity 2
+alert.gid 1
+alert.signature_id 2100498
+rules alert ip any any -> any any (msg:"GPL ATTACK_RESPONSE id check returned root"; content:"uid=0|28|root|29|"; classtype:bad-unknown; sid:2100498; rev:7; metadata:created_at 2010_09_23, confidence Medium, signature_severity Informational, updated_at 2019_07_26;)
+-
+Set B/C
+Ronde 11-20
+Skenario Path Traversal
+Jenis Evasion: Double URL Encode
+Level 2
+Alert ET WEB_SPECIFIC_APPS Possible Oracle WebLogic RCE Fuzzing Inbound M2
+alert.category Attempted Administrator Privilege Gain
+alert.saverity 1
+alert.gid 1
+alert.signature_id 2031145
+rules alert http any any -> [$HTTP_SERVERS,$HOME_NET] any (msg:"ET WEB_SPECIFIC_APPS Possible Oracle WebLogic RCE Fuzzing Inbound M2"; flow:established,to_server; http.method; content:"GET"; http.uri.raw; content:"%252e%252e%252f"; nocase; fast_pattern; reference:url,packetstormsecurity.com/files/159769/Oracle-WebLogic-Server-Remote-Code-Execution.html; classtype:attempted-admin; sid:2031145; rev:1; metadata:created_at 2020_10_30, deployment Perimeter, deployment Internal, confidence Medium, signature_severity Informational, tag Description_Generated_By_Proofpoint_Nexus, updated_at 2020_10_30;)
+-
+Set C
+Ronde 21-30
+Skenario Brute Force (hydra)
+Jenis Telnet Brute Force
+Level /2/3
+Alert ET EXPLOIT Zyxel DSL CPE Management Interface Default Credentials (admin) (CVE-2025-0890)
+alert.category Attempted Administrator Privilege Gain
+alert.saverity 1
+alert.gid 1
+alert.signature_id 2060090
+rules alert tcp any any -> $HOME_NET 23 (msg:"ET EXPLOIT Zyxel DSL CPE Management Interface Default Credentials (admin) (CVE-2025-0890)"; flow:established,to_server; content:"admin|0d 00|1234"; reference:url,vulncheck.com/blog/zyxel-telnet-vulns#cve-2025-0890-default-credentials; reference:cve,2025-0890; classtype:attempted-admin; sid:2060090; rev:1; metadata:affected_product Zyxel, attack_target Networking_Equipment, created_at 2025_02_14, cve CVE_2025_0890, deployment Perimeter, deployment Internal, confidence High, signature_severity Major, updated_at 2025_02_14; target:dest_ip;)
